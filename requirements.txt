@@ -1,0 +1,6 @@
+jupyter
+pandas
+pyyaml 
+psycopg2 
+sqlalchemy
+matplotlib
