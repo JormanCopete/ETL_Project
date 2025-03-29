@@ -39,15 +39,18 @@ Los datos utilizados contienen:
     ```bash
     pip install -r requirements.txt
     ```
-4. Ejecuta el proyecto completo utilizando **Jupyter Notebook**.  
+4. Ejecuta los script de base de datos que se encuentraq en la carpeta: **DB_scripts**
 
 ---
 
 ## Uso  
 Para ejecutar el proyecto:  
+1. Si quiere ver el EDA ve al archivo: \notebooks\EDA\Eda_datos.ipynb y ejecuta **Jupyter Notebook**.  
 - Abre Jupyter Notebook y navega hasta el archivo principal del proyecto.  
 - Ejecuta las celdas de manera secuencial para procesar la segmentación de clientes.  
 
+2. Ejecuta el proyecto completo utilizando el archivo **ejecutar_etl.bat**, este archivos ejecuta todo el proceso de extracion, transformacion y carga.
+   Este archivo de puede configurar para ejecutarse como una tarea programada en Windows
 ---
 
 ## Contribución  
