@@ -4,60 +4,84 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from etl.models.database_init import DatabaseManager
+import numpy as np
 
 db_manager = DatabaseManager()
-df_saldos_staging = db_manager.execute_query("SELECT * FROM saldos_staging")
-print(df_saldos_staging.head())  # Para ver los primeros registros
-
-
 
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
+# Función auxiliar para verificar si una tabla está vacía
+def tabla_esta_vacia(engine, table_name):
+    with engine.connect() as conn:
+        count = pd.read_sql(f"SELECT COUNT(*) AS count FROM {table_name}", conn).iloc[0]['count']
+        return count == 0
+    
 def cargar_dimensiones_basicas(engine):
     """Carga las dimensiones básicas con sus valores categóricos"""
     
     # DimSexo
-    pd.DataFrame({
-        'sexo_code': ['M', 'F'],
-        'descripcion': ['Masculino', 'Femenino']
-    }).to_sql('dim_sexo', engine, if_exists='append', index=False)
-    
+    if tabla_esta_vacia(engine, 'dim_sexo'):
+        pd.DataFrame({
+            'sexo_code': ['M', 'F'],
+            'descripcion': ['Masculino', 'Femenino']
+        }).to_sql('dim_sexo', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_sexo ya contiene datos. No se insertaron duplicados.")
+
     # DimEstadoCivil
-    pd.DataFrame({
-        'codigo': [1, 2, 3, 4, 5, 6, 7],
-        'descripcion': ['Soltero', 'Casado', 'Viudo', 'Union libre', 'Soltero', 'N/A', 'Divorciado']
-    }).to_sql('dim_estado_civil', engine, if_exists='append', index=False)
-    
+    if tabla_esta_vacia(engine, 'dim_estado_civil'):
+        pd.DataFrame({
+            'codigo': [1, 2, 3, 4, 5, 6, 7],
+            'descripcion': ['Soltero', 'Casado', 'Viudo', 'Union libre', 'Soltero', 'N/A', 'Divorciado']
+        }).to_sql('dim_estado_civil', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_estado_civil ya contiene datos. No se insertaron duplicados.")
+
     # DimTipoSalario
-    pd.DataFrame({
-        'codigo': [1, 2, 3, 4, 5, 6],
-        'descripcion': ['Integral', 'Ley 50', 'Ley anterior', 'Otro', 'Ley 1278', 'Ley 2277']
-    }).to_sql('dim_tipo_salario', engine, if_exists='append', index=False)
-    
+    if tabla_esta_vacia(engine, 'dim_tipo_salario'):
+        pd.DataFrame({
+            'codigo': [1, 2, 3, 4, 5, 6],
+            'descripcion': ['Integral', 'Ley 50', 'Ley anterior', 'Otro', 'Ley 1278', 'Ley 2277']
+        }).to_sql('dim_tipo_salario', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_tipo_salario ya contiene datos. No se insertaron duplicados.")
+
     # DimCodahor
-    pd.DataFrame({
-        'codigo': [1, 2, 3, 4, 5, 6, 7],
-        'descripcion': ['Aportes', 'Ahorros', 'Servicios', 'Creditos', 'Tarjeta credito', 'CDAT', 'Interes Cdats']
-    }).to_sql('dim_codahor', engine, if_exists='append', index=False)
-    
+    if tabla_esta_vacia(engine, 'dim_codahor'):
+        pd.DataFrame({
+            'codigo': [1, 2, 3, 4, 5, 6, 7],
+            'descripcion': ['Aportes', 'Ahorros', 'Servicios', 'Creditos', 'Tarjeta credito', 'CDAT', 'Interes Cdats']
+        }).to_sql('dim_codahor', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_codahor ya contiene datos. No se insertaron duplicados.")
+
     # DimClades
-    pd.DataFrame({
-        'codigo': [0, 1, 2],
-        'descripcion': ['N/A', 'Nomina', 'Caja']
-    }).to_sql('dim_clades', engine, if_exists='append', index=False)
-    
+    if tabla_esta_vacia(engine, 'dim_clades'):
+        pd.DataFrame({
+            'codigo': [0, 1, 2],
+            'descripcion': ['N/A', 'Nomina', 'Caja']
+        }).to_sql('dim_clades', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_clades ya contiene datos. No se insertaron duplicados.")
+
     # DimClacuo
-    pd.DataFrame({
-        'codigo': [1, 2],
-        'descripcion': ['Fija', 'Variable']
-    }).to_sql('dim_clacuo', engine, if_exists='append', index=False)
-    
+    if tabla_esta_vacia(engine, 'dim_clacuo'):
+        pd.DataFrame({
+            'codigo': [1, 2],
+            'descripcion': ['Fija', 'Variable']
+        }).to_sql('dim_clacuo', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_clacuo ya contiene datos. No se insertaron duplicados.")
+
     # DimPeriodd
-    pd.DataFrame({
-        'codigo': [1, 2, 3, 4],
-        'descripcion': ['Mensual', 'Quincenal', 'Decadal', 'Semanal']
-    }).to_sql('dim_periodd', engine, if_exists='append', index=False)
+    if tabla_esta_vacia(engine, 'dim_periodd'):
+        pd.DataFrame({
+            'codigo': [1, 2, 3, 4],
+            'descripcion': ['Mensual', 'Quincenal', 'Decadal', 'Semanal']
+        }).to_sql('dim_periodd', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_periodd ya contiene datos. No se insertaron duplicados.")
 
 def cargar_dim_cliente(df, engine):
     """Carga la dimensión cliente desde saldos_staging"""
@@ -67,44 +91,27 @@ def cargar_dim_cliente(df, engine):
         'documento_identidad', 'nombre', 'apellido', 'fecha_ingreso',
         'estrato', 'tipovehiculo'
     ]].drop_duplicates(subset=['documento_identidad'])
-    
-    # Obtener claves foráneas
-    tablas_dim = {
-        'sexo': ('sexo', 'dim_sexo', 'sexo_code'),
-        'estado_civil': ('estado_civil', 'dim_estado_civil', 'codigo'),
-        'tipo_salario': ('tipo_salario', 'dim_tipo_salario', 'codigo')
-    }
-    
-    for col, (col_orig, tabla, col_cod) in tablas_dim.items():
-        # Obtener mapeo de la dimensión
-        dim_data = pd.read_sql(f"SELECT {col}_key, {col_cod} FROM {tabla}", engine)
-        dim_map = dict(zip(dim_data[col_cod], dim_data[f'{col}_key']))
         
-        # Mapear valores
-        df[f'{col}_key'] = df[col_orig].map(dim_map)
+    # Cargar datos    
+    if tabla_esta_vacia(engine, 'dim_periodd'):
+        clientes.to_sql('dim_cliente', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_periodd ya contiene datos. No se insertaron duplicados.")      
     
-    # Agregar claves foráneas al DataFrame de cliente
-    cliente_keys = df.groupby('documento_identidad').agg({
-        'sexo_key': 'first',
-        'estado_civil_key': 'first',
-        'tipo_salario_key': 'first'
-    }).reset_index()
-    
-    clientes = clientes.merge(cliente_keys, on='documento_identidad', how='left')
-    
-    # Cargar datos
-    clientes.to_sql('dim_cliente', engine, if_exists='append', index=False)
 
 def cargar_dim_lincred(df, engine):
     """Carga la dimensión lincred desde saldos_staging"""
     
     # Obtener líneas de crédito únicas
     lincred = df[['lincred']].drop_duplicates()
-    lincred['descripcion'] = 'Línea ' + lincred['lincred'].astype(str)
+    lincred['descripcion'] = df[['descripcion']].astype(str)
     lincred = lincred.rename(columns={'lincred': 'codigo'})
     
-    # Cargar datos
-    lincred.to_sql('dim_lincred', engine, if_exists='append', index=False)
+    # Cargar datos    
+    if tabla_esta_vacia(engine, 'dim_periodd'):
+        lincred.to_sql('dim_lincred', engine, if_exists='append', index=False)
+    else:
+        print("La tabla dim_periodd ya contiene datos. No se insertaron duplicados.")    
 
 def cargar_fact_saldos(df, engine):
     """Carga la tabla de hechos desde saldos_staging"""
@@ -144,12 +151,16 @@ def cargar_fact_saldos(df, engine):
     # Filtrar columnas existentes
     fact_cols = [col for col in fact_cols if col in df.columns]
     
+    with engine.begin() as conn:  # Transacción automática
+    # Borrar todos los registros (más eficiente que DELETE)
+        conn.execute(text("TRUNCATE TABLE fact_saldos RESTART IDENTITY CASCADE"))
+
     # Cargar datos
     df[fact_cols].to_sql('fact_saldos', engine, if_exists='append', index=False)
 
 def main():
     # Configurar conexión
-    engine = create_engine('postgresql://usuario:contraseña@localhost:5432/base_de_datos')
+    engine = db_manager.get_db_connection() 
     
     # 1. Cargar datos desde saldos_staging
     df = pd.read_sql_table('saldos_staging', engine)

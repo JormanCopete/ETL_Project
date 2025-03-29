@@ -1,7 +1,12 @@
 import pandas as pd
+from pathlib import Path
+import logging
 
 def extract_csv(file_path):
     """Extrae datos del CSV y devuelve DataFrame"""
+
+    file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
+    logging.info(f"Intentando leer archivo: {file_path}")
     df = pd.read_csv(
         file_path,
         sep=';', 
@@ -15,6 +20,7 @@ def extract_csv(file_path):
                 'mora_abono': 'float64',
                 'mora_saldo': 'float64'
               }, encoding='ISO-8859-1')
+    logging.info(f"Archivo leído correctamente. Registros: {len(df)}")
     return df
 
 

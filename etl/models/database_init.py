@@ -3,7 +3,6 @@ from sqlalchemy import create_engine
 from sqlalchemy import inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-#from airflow.hooks.base import BaseHook
 
 import sys
 import os
@@ -12,8 +11,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 from etl.models.base import Base  # Ahora puedes usar una importación absoluta
 
-#from .base import Base  # Asegúrate de que Base tenga importados todos tus modelos
-#import psycopg2
 import pandas as pd
 
 import os
@@ -57,4 +54,3 @@ class DatabaseManager:
 if __name__ == '__main__':
     db_manager = DatabaseManager()
     db_manager.init_db()
-    # Aquí puedes iniciar el proceso ETL o cualquier otra operación de carga.
